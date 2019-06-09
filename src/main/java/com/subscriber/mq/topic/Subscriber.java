@@ -4,7 +4,7 @@ import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import java.io.UnsupportedEncodingException;
 
-public class Subscriber extends Thread{
+public class Subscriber{
 
     /**
      * MQ Manager attribute.
@@ -27,8 +27,6 @@ public class Subscriber extends Thread{
     private final int openOptionsForGet = CMQC.MQSO_CREATE | CMQC.MQSO_FAIL_IF_QUIESCING
             | CMQC.MQSO_MANAGED | CMQC.MQSO_NON_DURABLE;
 
-    private int threadNo;
-
     /**
      * Constructor to connect to MQ Manager and MQ topic like subscriber.
      * @param hostname
@@ -40,8 +38,8 @@ public class Subscriber extends Thread{
      * @param topicName
      * @throws MQException
      */
-    public Subscriber(String hostname, Integer port, String channelServer, String userID,
-                      String password, String mqManager, String topicName) throws MQException {
+    public Subscriber(String hostname, Integer port, String mqManager, String channelServer,
+                      String topicName, String userID, String password) throws MQException {
         MQEnvironment.hostname = hostname;
         MQEnvironment.port = port;
         MQEnvironment.channel = channelServer;
@@ -56,6 +54,7 @@ public class Subscriber extends Thread{
         }catch (MQException e){
             if (mqQueueManager != null)
                 mqQueueManager.disconnect();
+            e.printStackTrace();
             throw e;
         }
     }
@@ -81,36 +80,16 @@ public class Subscriber extends Thread{
      * Unsubscribe MQ Topic and disconnect to MQ Manager.
      * @throws MQException
      */
-    public void close() throws MQException{
+    public void close() throws Exception{
         try {
             if (subscriber != null)
                 subscriber.close();
             if (mqQueueManager != null)
                 mqQueueManager.disconnect();
-        }catch (MQException e){
+        }catch (Exception e){
             if (mqQueueManager != null)
                 mqQueueManager.disconnect();
             throw e;
-        }
-    }
-
-    /**
-     * Execute subscriber thread.
-     */
-    @Override
-    public void run() {
-        try{
-            while( true ){
-                System.out.println(receiveMessage());
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        } finally {
-            try{
-                close();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
         }
     }
 
