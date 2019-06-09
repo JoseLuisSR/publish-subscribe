@@ -2,7 +2,13 @@
 
 Library to subscribe topic on MQ and Apache Kafka.
 
-## Subscriber test
+## Build
+
+Build uber-jar through maven:
+
+    mvn package
+
+## Test
 
 Execute Uber-jar with below parameters:
 
