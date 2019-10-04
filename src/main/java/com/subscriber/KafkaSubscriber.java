@@ -24,6 +24,15 @@ public class KafkaSubscriber implements Subscriber{
      */
     public static final String VALUE_DESERIALIZER_CLASS = "Deserializer value object";
 
+    /**
+     * Auto offset constant.
+     */
+    public static final String AUTO_OFFSET = "earliest";
+
+    /**
+     *  Max poll record constant.
+     */
+    public static final String MAX_POLL_RECORDS = "1";
 
     /**
      * Kafka topic subscriber.
@@ -52,7 +61,10 @@ public class KafkaSubscriber implements Subscriber{
         // The class name to deserialize the value object.
         kafkaProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, properties.getProperty(VALUE_DESERIALIZER_CLASS));
         // Max records to get from topic
-        kafkaProperties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
+        kafkaProperties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS);
+        //Starting offset should be.
+        kafkaProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET);
+
 
         subscriber = new KafkaConsumer<>(kafkaProperties);
         subscriber.subscribe(Arrays.asList(properties.getProperty(TOPIC_NAME)));
@@ -64,7 +76,7 @@ public class KafkaSubscriber implements Subscriber{
      */
     public String receiveMessage(){
         // Set unlimited time to wait get the message from topic.
-        String message = subscriber.poll(Duration.ofMillis(Long.MAX_VALUE)).records("test1").iterator().next().value();
+        String message = subscriber.poll(Duration.ofMillis(Long.MAX_VALUE)).iterator().next().value();
         subscriber.commitAsync();
         return message;
     }
