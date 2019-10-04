@@ -3,6 +3,7 @@
 Library to subscribe topic on MQ and Apache Kafka. The goal is abstract all the steps necessary to connect to each kind of
 message broker and subscribe on topic to receive message. Also you can find a client to create the subscribers that you want to register on topic.
 
+
 ## Environment
 
 ### Kafka
@@ -23,11 +24,13 @@ Also you can add all the configurations steps that you want, if the vagrant mach
 
 IBM products need licence to using them, so good luck with that.
 
+
 ## Build
 
 Build uber-jar through maven:
 
     mvn package
+
 
 ## Test
 
@@ -41,6 +44,7 @@ You can use [kafkameter](https://github.com/BrightTag/kafkameter) that is JMeter
 
 There is JMeter plugin to connect MQ server through server channel and publish message on topic, it is [mqmeter](https://github.com/JoseLuisSR/mqmeter).
 I made it and works good.
+
 
 ### Subscribe
 
