@@ -63,6 +63,7 @@ public class SubscriberTest {
             subscriber.subscribe(subsProperties);
             subscribers[i] = new SubscribeThread(subscriber, "Subscriber " + i);
             subscribers[i].start();
+            System.out.println("Subscriber " + i + " Ready");
         }
     }
 
