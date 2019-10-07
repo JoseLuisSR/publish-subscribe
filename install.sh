@@ -1,15 +1,15 @@
 # Add Openjdk to get Jave
-sudo add-apt-repository ppa:openjdk-r/ppa
+echo vagrant | sudo -S add-apt-repository ppa:openjdk-r/ppa
 
 # Update package list
-sudo apt-get update
+echo vagrant | sudo -S apt-get update
 
 # Install zip & unzip
 apt-get install zip
 apt-get install unzip
 
 # Install Java
-sudo apt-get install openjdk-8-jdk
+echo vagrant | sudo -S apt-get install -y openjdk-8-jdk
 
 # Install kafka binary package
 cd /home/vagrant
