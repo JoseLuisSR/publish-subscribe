@@ -1,11 +1,35 @@
+/*
+ * Copyright 2019
+ *
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License.
+ *You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *Unless required by applicable law or agreed to in writing, software
+ *distributed under the License is distributed on an "AS IS" BASIS,
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *See the License for the specific language governing permissions and
+ *limitations under the License.
+ */
 package com.subscriber;
 
-import com.ibm.mq.*;
+import com.ibm.mq.MQException;
+import com.ibm.mq.MQMsg2;
+import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.MQTopic;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.MQConstants;
-
+import com.ibm.mq.MQGetMessageOptions;
 import java.util.Properties;
 
+/**
+ * This class is to subscribe on topic of MQ server.
+ * @author JoseLuisSR
+ * @since 05/30/2019
+ * @see "https://github.com/JoseLuisSR/subscriber"
+ */
 public class MQSubscriber implements Subscriber {
 
     /**
