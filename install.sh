@@ -16,13 +16,17 @@ cd /home/vagrant
 wget https://www-us.apache.org/dist/kafka/2.3.0/kafka_2.12-2.3.0.tgz
 tar xzf kafka_2.12-2.3.0.tgz
 mv kafka_2.12-2.3.0 kafka
+rm kafka_2.12-2.3.0.tgz
+
+# Replace server properties file with socket server settings.
+cp server.properties kafka/config/
 cd kafka
 
 # Start Zookeeper server
-bin/zookeeper-server-start.sh config/zookeeper.properties &
+bin/zookeeper-server-start.sh config/zookeeper.properties
 
 # Start Kafka server
-bin/kafka-server-start.sh config/server.properties &
+bin/kafka-server-start.sh config/server.properties
 
 # Create topic
-bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 6 --topic test
+bin/kafka-topics.sh --create --bootstrap-server 172.28.128.4:9092 --replication-factor 1 --partitions 6 --topic test
