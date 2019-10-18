@@ -68,10 +68,10 @@ public class KafkaSubscriber implements Subscriber{
     }
 
     /**
-     * Subscribe topic on Kafka
-     * @param properties to connect message broker and topic.
+     * Connect to kafka message broker.
+     * @param properties
      */
-    public void subscribe(Properties properties) {
+    public void connect(Properties properties) {
         Properties kafkaProperties = new Properties();
         // Kafka broker address.
         kafkaProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getProperty(HOST_NAME)+":"+Integer.parseInt(properties.getProperty(PORT)));
@@ -86,9 +86,23 @@ public class KafkaSubscriber implements Subscriber{
         //Starting offset should be.
         kafkaProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET);
 
-
         subscriber = new KafkaConsumer<>(kafkaProperties);
+    }
+
+    /**
+     * Subscribe topic on Kafka.
+     * @param properties to connect message broker and topic.
+     */
+    public void subscribe(Properties properties) {
+
         subscriber.subscribe(Arrays.asList(properties.getProperty(TOPIC_NAME)));
+    }
+
+    /**
+     * Unsubscribe topic on Kafka.
+     */
+    public void unsubscribe() {
+        subscriber.unsubscribe();
     }
 
     /**
@@ -103,9 +117,9 @@ public class KafkaSubscriber implements Subscriber{
     }
 
     /**
-     * Unsubscribe kafka topic.
+     * Disconnect kafka message broker.
      */
-    public void close(){
+    public void disconnect(){
         subscriber.close();
     }
     

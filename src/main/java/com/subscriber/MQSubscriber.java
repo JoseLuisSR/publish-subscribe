@@ -82,33 +82,62 @@ public class MQSubscriber implements Subscriber {
     }
 
     /**
+     * Connect to MQ message broker.
+     * @param properties
+     */
+    public void connect(Properties properties) {
+        // SET MQ Manager properties to connection.
+        Properties mqProperties = new Properties();
+        //MQ host
+        mqProperties.put(MQConstants.HOST_NAME_PROPERTY, properties.getProperty(HOST_NAME));
+        //MQ port
+        mqProperties.put(MQConstants.PORT_PROPERTY, Integer.parseInt(properties.getProperty(PORT)));
+        //MQ Server channel.
+        mqProperties.put(MQConstants.CHANNEL_PROPERTY, properties.getProperty(CHANNEL_SRV_NAME));
+        //MQ Authentication property.
+        mqProperties.put(MQConstants.USE_MQCSP_AUTHENTICATION_PROPERTY, true);
+        String userID = properties.getProperty(USER_ID);
+
+        if( userID != null && !userID.isEmpty() ){
+            //MQ User name.
+            mqProperties.put(MQConstants.USER_ID_PROPERTY, userID);
+        }
+
+        String password = properties.getProperty(PASSWORD);
+        if( password != null && !password.isEmpty() ){
+            //MQ User password.
+            mqProperties.put(MQConstants.PASSWORD_PROPERTY, password);
+        }
+
+        try{
+            mqQueueManager = new MQQueueManager(properties.getProperty(MQ_MANAGER), mqProperties);
+
+        }catch (MQException e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Subscribe topic on MQ.
      * @param properties to connect message broker and topic.
      */
     public void subscribe(Properties properties) {
-        // SET MQ Manager properties to connection.
-        Properties mqProperties = new Properties();
-        mqProperties.put(MQConstants.HOST_NAME_PROPERTY, properties.getProperty(HOST_NAME));
-        mqProperties.put(MQConstants.PORT_PROPERTY, Integer.parseInt(properties.getProperty(PORT)));
-        mqProperties.put(MQConstants.CHANNEL_PROPERTY, properties.getProperty(CHANNEL_SRV_NAME));
-        mqProperties.put(MQConstants.USE_MQCSP_AUTHENTICATION_PROPERTY, true);
-        String userID = properties.getProperty(USER_ID);
-        if( userID != null && !userID.isEmpty() )
-            mqProperties.put(MQConstants.USER_ID_PROPERTY, userID);
-        String password = properties.getProperty(PASSWORD);
-        if( password != null && !password.isEmpty() )
-            mqProperties.put(MQConstants.PASSWORD_PROPERTY, password);
 
         try{
-            mqQueueManager = new MQQueueManager(properties.getProperty(MQ_MANAGER), mqProperties);
             subscriber = mqQueueManager.accessTopic(null, properties.getProperty(TOPIC_NAME), CMQC.MQTOPIC_OPEN_AS_SUBSCRIPTION, openOptionsForGet);
         }catch (MQException e){
-            try{
-                subscriber.close();
-                mqQueueManager.disconnect();
-            }catch (MQException e1){
+            e.printStackTrace();
+        }
+    }
 
-            }
+    /**
+     * Unsubscribe topic on MQ.
+     */
+    public void unsubscribe() {
+        try{
+            subscriber.close();
+        }catch (MQException e){
+            e.printStackTrace();
         }
     }
 
@@ -119,26 +148,20 @@ public class MQSubscriber implements Subscriber {
     public String receiveMessage(){
         String message = "";
         MQMsg2 mqMsg2 = new MQMsg2();
-        MQGetMessageOptions mgmo = new MQGetMessageOptions();
-        mgmo.options = CMQC.MQGMO_WAIT;
-        mgmo.waitInterval = CMQC.MQWI_UNLIMITED;
+        MQGetMessageOptions mqMsgOpt = new MQGetMessageOptions();
+        mqMsgOpt.options = CMQC.MQGMO_WAIT;
+        mqMsgOpt.waitInterval = CMQC.MQWI_UNLIMITED;
 
         try {
-
-            subscriber.getMsg2(mqMsg2, mgmo);
+            subscriber.getMsg2(mqMsg2, mqMsgOpt);
             if (encodingMsg == null)
                 encodingMsg = "ASCII";
             message = new String(mqMsg2.getMessageData(), encodingMsg);
 
         }catch (MQException e){
-
-            try{
-                subscriber.close();
-                mqQueueManager.close();
-
-            }catch (MQException e1){
-
-            }
+            unsubscribe();
+            disconnect();
+            e.printStackTrace();
 
         }finally {
             return message;
@@ -148,11 +171,11 @@ public class MQSubscriber implements Subscriber {
     /**
      * Unsubscribe mq topic.
      */
-    public void close(){
+    public void disconnect(){
         try {
-            subscriber.close();
             mqQueueManager.disconnect();
         }catch (MQException e){
+            e.printStackTrace();
         }
     }
 
