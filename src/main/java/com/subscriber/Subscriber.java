@@ -41,10 +41,21 @@ public interface Subscriber {
     String TOPIC_NAME = "Topic name";
 
     /**
+     * Connect to message broker.
+     * @param properties
+     */
+    void connect(Properties properties);
+
+    /**
      * Subscribe topic.
      * @param properties to connect message broker and topic.
      */
     void subscribe(Properties properties);
+
+    /**
+     * Unsubscribe topic.
+     */
+    void unsubscribe();
 
     /**
      * Listen topic to receive message.
@@ -53,8 +64,8 @@ public interface Subscriber {
     String receiveMessage();
 
     /**
-     * Unsubscribe topic.
+     * Disconnect message broker.
      */
-    void close();
+    void disconnect();
 
 }

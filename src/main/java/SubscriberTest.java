@@ -60,37 +60,12 @@ public class SubscriberTest {
 
         for(int i = 0; i < subsNumber; i++) {
             subscriber = args[0].equals("MQ") ? new MQSubscriber() : new KafkaSubscriber();
+            subscriber.connect(subsProperties);
             subscriber.subscribe(subsProperties);
-            subscribers[i] = new SubscribeThread(subscriber, "Subscriber " + i);
+            subscribers[i] = new SubscriberThread(subscriber, "Subscriber " + i);
             subscribers[i].start();
             System.out.println("Subscriber " + i + " Ready");
         }
     }
 
-     class SubscribeThread extends Thread{
-
-        private Subscriber subscriber;
-
-        public SubscribeThread(Subscriber subscriber, String name){
-            super(name);
-            this.subscriber = subscriber;
-        }
-
-        @Override
-        public void run(){
-            try{
-                while( true ){
-                    System.out.println(this.getName() + " -> Message: " + subscriber.receiveMessage());
-                }
-            }catch (Exception e){
-                e.printStackTrace();
-            } finally {
-                try{
-                    subscriber.close();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 }
