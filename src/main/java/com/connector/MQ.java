@@ -13,24 +13,22 @@
  *See the License for the specific language governing permissions and
  *limitations under the License.
  */
-package com.subscriber;
+package com.connector;
 
-import com.ibm.mq.MQException;
-import com.ibm.mq.MQMsg2;
-import com.ibm.mq.MQQueueManager;
-import com.ibm.mq.MQTopic;
+import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.MQConstants;
-import com.ibm.mq.MQGetMessageOptions;
+
+import java.io.IOException;
 import java.util.Properties;
 
 /**
- * This class is to subscribe on topic of MQ server.
+ * This class is connector to IBM MQ Message Broker.
  * @author JoseLuisSR
  * @since 05/30/2019
  * @see "https://github.com/JoseLuisSR/subscriber"
  */
-public class MQSubscriber implements Subscriber {
+public class MQ implements Connector {
 
     /**
      * MQ Channel Server Name constant.
@@ -53,33 +51,25 @@ public class MQSubscriber implements Subscriber {
     public static final String PASSWORD = "Password";
 
     /**
-     * MQ Manager attribute.
-     */
-    private MQQueueManager mqQueueManager;
-
-    /**
-     * MQ Topic attribute.
-     */
-    private MQTopic subscriber;
-
-    /**
-     * Encoding message attribute.
-     */
-    private String encodingMsg;
-
-    /**
      * Constant to subscribe to MQ topic.
      */
     private final int openOptionsForGet = CMQC.MQSO_CREATE | CMQC.MQSO_FAIL_IF_QUIESCING
             | CMQC.MQSO_MANAGED | CMQC.MQSO_NON_DURABLE;
 
+    /**
+     * MQ Manager attribute.
+     */
+    private MQQueueManager mqQueueManager;
 
     /**
-     * MQ Message Broker Constructor.
+     * Consumer connector.
      */
-    public MQSubscriber(){
-        
-    }
+    private MQTopic consumer;
+
+    /**
+     * Producer connector.
+     */
+    private MQTopic producer;
 
     /**
      * Connect to MQ message broker.
@@ -118,13 +108,24 @@ public class MQSubscriber implements Subscriber {
     }
 
     /**
+     * Disconnect MQ message broker.
+     */
+    public void disconnect(){
+        try {
+            mqQueueManager.disconnect();
+        }catch (MQException e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Subscribe topic on MQ.
      * @param properties to connect message broker and topic.
      */
-    public void subscribe(Properties properties) {
+    public void subscribeTopic(Properties properties) {
 
         try{
-            subscriber = mqQueueManager.accessTopic(null, properties.getProperty(TOPIC_NAME), CMQC.MQTOPIC_OPEN_AS_SUBSCRIPTION, openOptionsForGet);
+            consumer = mqQueueManager.accessTopic(null, properties.getProperty(TOPIC_NAME), CMQC.MQTOPIC_OPEN_AS_SUBSCRIPTION, openOptionsForGet);
         }catch (MQException e){
             e.printStackTrace();
         }
@@ -133,9 +134,9 @@ public class MQSubscriber implements Subscriber {
     /**
      * Unsubscribe topic on MQ.
      */
-    public void unsubscribe() {
+    public void unsubscribeTopic() {
         try{
-            subscriber.close();
+            consumer.close();
         }catch (MQException e){
             e.printStackTrace();
         }
@@ -145,7 +146,7 @@ public class MQSubscriber implements Subscriber {
      * Listen mq topic to receive message
      * @return message
      */
-    public String receiveMessage(){
+    public String listen(Properties options){
         String message = "";
         MQMsg2 mqMsg2 = new MQMsg2();
         MQGetMessageOptions mqMsgOpt = new MQGetMessageOptions();
@@ -153,13 +154,10 @@ public class MQSubscriber implements Subscriber {
         mqMsgOpt.waitInterval = CMQC.MQWI_UNLIMITED;
 
         try {
-            subscriber.getMsg2(mqMsg2, mqMsgOpt);
-            if (encodingMsg == null)
-                encodingMsg = "ASCII";
-            message = new String(mqMsg2.getMessageData(), encodingMsg);
-
+            consumer.getMsg2(mqMsg2, mqMsgOpt);
+            message = new String(mqMsg2.getMessageData(), options.getProperty(ENCODING_MSG_EVENT));
         }catch (MQException e){
-            unsubscribe();
+            unsubscribeTopic();
             disconnect();
             e.printStackTrace();
 
@@ -169,12 +167,43 @@ public class MQSubscriber implements Subscriber {
     }
 
     /**
-     * Unsubscribe mq topic.
+     * Access topic on IBM MQ.
+     * @param properties
      */
-    public void disconnect(){
-        try {
-            mqQueueManager.disconnect();
+    public void accessTopic(Properties properties) {
+
+        try{
+            producer = mqQueueManager.accessTopic(null, properties.getProperty(TOPIC_NAME), MQConstants.MQTOPIC_OPEN_AS_PUBLICATION, MQConstants.MQOO_OUTPUT);
         }catch (MQException e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Leave topic on IBM MQ.
+     */
+    public void leaveTopic() {
+        try{
+            producer.close();
+        }catch (MQException e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Announce event, message to the Topic on IBM MQ.
+     * @param event or message to publish on topic.
+     * @param options to set up the publish.
+     */
+    public void announce(String event, Properties options) {
+
+        MQMessage mqMessage = new MQMessage();
+        try{
+            mqMessage.write(event.getBytes(options.getProperty(ENCODING_MSG_EVENT)));
+            producer.put(mqMessage, new MQPutMessageOptions());
+        }catch (MQException | IOException e){
+            leaveTopic();
+            disconnect();
             e.printStackTrace();
         }
     }
