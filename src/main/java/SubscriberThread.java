@@ -8,6 +8,8 @@ public class SubscriberThread extends Thread{
 
     private Properties options;
 
+    private volatile boolean exit = false;
+
     public SubscriberThread(Connector subscriber, String name, Properties options){
         super(name);
         this.subscriber = subscriber;
@@ -16,6 +18,14 @@ public class SubscriberThread extends Thread{
 
     @Override
     public void run(){
+
+        while(!exit){
+            System.out.println(this.getName() + " -> Message: " + subscriber.listen(options));
+        }
+        subscriber.unsubscribeTopic();
+        subscriber.disconnect();
+
+        /*
         try{
             while( true ){
                 System.out.println(this.getName() + " -> Message: " + subscriber.listen(options));
@@ -30,5 +40,11 @@ public class SubscriberThread extends Thread{
                 e.printStackTrace();
             }
         }
+        */
     }
+
+    public void stoper(){
+        this.exit = true;
+    }
+
 }
