@@ -67,7 +67,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>SubscriberTest</mainClass>
+                                    <mainClass>ConnectorTest</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
