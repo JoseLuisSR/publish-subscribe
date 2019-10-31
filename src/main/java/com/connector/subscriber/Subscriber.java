@@ -13,12 +13,12 @@
  *See the License for the specific language governing permissions and
  *limitations under the License.
  */
-package com.subscriber;
+package com.connector.subscriber;
 
 import java.util.Properties;
 
 /**
- * This class is an interface with the common behaviour between Kafka and MQ.
+ * This class is an interface for subscriber connector.
  * @author JoseLuisSR
  * @since 05/30/2019
  * @see "https://github.com/JoseLuisSR/subscriber"
@@ -26,35 +26,21 @@ import java.util.Properties;
 public interface Subscriber {
 
     /**
-     * Host name constant.
-     */
-    String HOST_NAME = "Host name";
-
-    /**
-     * Port number constant.
-     */
-    String PORT = "Port number";
-
-    /**
-     * Topic name constant.
-     */
-    String TOPIC_NAME = "Topic name";
-
-    /**
      * Subscribe topic.
-     * @param properties to connect message broker and topic.
+     * @param properties to subscribe topic.
      */
-    void subscribe(Properties properties);
-
-    /**
-     * Listen topic to receive message.
-     * @return message
-     */
-    String receiveMessage();
+    void subscribeTopic(Properties properties);
 
     /**
      * Unsubscribe topic.
      */
-    void close();
+    void unsubscribeTopic();
+
+    /**
+     * Listen topic to receive event, message.
+     * @param options to set up consumer.
+     * @return event or message from topic.
+     */
+    String listen(Properties options);
 
 }

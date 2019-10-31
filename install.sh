@@ -1,4 +1,4 @@
-# Add Openjdk to get Jave
+# Add Openjdk to get Java
 echo vagrant | sudo -S add-apt-repository ppa:openjdk-r/ppa
 
 # Update package list
@@ -23,10 +23,10 @@ cp server.properties kafka/config/
 cd kafka
 
 # Start Zookeeper server
-bin/zookeeper-server-start.sh config/zookeeper.properties
+bin/zookeeper-server-start.sh config/zookeeper.properties &
 
 # Start Kafka server
-bin/kafka-server-start.sh config/server.properties
+bin/kafka-server-start.sh config/server.properties &
 
 # Create topic
 bin/kafka-topics.sh --create --bootstrap-server 172.28.128.4:9092 --replication-factor 1 --partitions 6 --topic test

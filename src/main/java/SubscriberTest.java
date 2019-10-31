@@ -1,7 +1,7 @@
 
-import com.subscriber.MQSubscriber;
-import com.subscriber.KafkaSubscriber;
-import com.subscriber.Subscriber;
+import com.connector.Connector;
+import com.connector.Kafka;
+import com.connector.MQ;
 
 import java.util.Properties;
 
@@ -11,86 +11,60 @@ public class SubscriberTest {
 
     private int subsNumber;
 
+    private String messageBroker;
+
     public SubscriberTest(String args[]){
 
         subsProperties = new Properties();
 
+        messageBroker = args[1];
         //How many subscribers.
-        subsNumber = Integer.parseInt(args[1]);
-        subsProperties.put(Subscriber.HOST_NAME, args[2]);
-        subsProperties.put(Subscriber.PORT,args[3]);
-        subsProperties.put(Subscriber.TOPIC_NAME, args[4]);
+        subsNumber = Integer.parseInt(args[2]);
+        subsProperties.put(Connector.HOST_NAME, args[3]);
+        subsProperties.put(Connector.PORT,args[4]);
+        subsProperties.put(Connector.TOPIC_NAME, args[5]);
+        subsProperties.put(Connector.ENCODING_MSG_EVENT, args[6]);
 
-        if( args[0].equals("MQ") ) {
+        if( messageBroker.equals("MQ") ) {
 
-            subsProperties.put(MQSubscriber.MQ_MANAGER, args[5]);
-            subsProperties.put(MQSubscriber.CHANNEL_SRV_NAME, args[6]);
-            subsProperties.put(MQSubscriber.USER_ID, args[7]);
-            subsProperties.put(MQSubscriber.PASSWORD, args[8]);
+            subsProperties.put(MQ.MQ_MANAGER, args[7]);
+            subsProperties.put(MQ.CHANNEL_SRV_NAME, args[8]);
+            subsProperties.put(MQ.USER_ID, args[9]);
+            subsProperties.put(MQ.PASSWORD, args[10]);
 
-            System.out.println( subsProperties.getProperty(Subscriber.HOST_NAME) + " " +
-                    subsProperties.getProperty(Subscriber.PORT) + " " +  subsProperties.getProperty(MQSubscriber.TOPIC_NAME) + " " +
-                    subsProperties.getProperty(MQSubscriber.MQ_MANAGER) + " " + subsProperties.getProperty(MQSubscriber.CHANNEL_SRV_NAME) + " " +
-                    subsProperties.getProperty(MQSubscriber.USER_ID) + " " + subsProperties.getProperty(MQSubscriber.PASSWORD) );
+            System.out.println( subsProperties.getProperty(Connector.HOST_NAME) + " " +
+                    subsProperties.getProperty(Connector.PORT) + " " +  subsProperties.getProperty(MQ.TOPIC_NAME) + " " +
+                    subsProperties.getProperty(MQ.MQ_MANAGER) + " " + subsProperties.getProperty(MQ.CHANNEL_SRV_NAME) + " " +
+                    subsProperties.getProperty(MQ.USER_ID) + " " + subsProperties.getProperty(MQ.PASSWORD) );
 
-        }else if (args[0].equals("KAFKA")){
+        }else if (messageBroker.equals("KAFKA")){
 
-            subsProperties.put(KafkaSubscriber.GROUP_ID, args[5]);
-            subsProperties.put(KafkaSubscriber.KEY_DESERIALIZER_CLASS, args[6]);
-            subsProperties.put(KafkaSubscriber.VALUE_DESERIALIZER_CLASS, args[7]);
+            subsProperties.put(Kafka.GROUP_ID, args[7]);
+            subsProperties.put(Kafka.KEY_DESERIALIZER_CLASS, args[8]);
+            subsProperties.put(Kafka.VALUE_DESERIALIZER_CLASS, args[9]);
 
-            System.out.println( subsProperties.getProperty(Subscriber.HOST_NAME) + " " +
-                    subsProperties.getProperty(Subscriber.PORT) + " " +  subsProperties.getProperty(MQSubscriber.TOPIC_NAME) + " " +
-                    subsProperties.getProperty(KafkaSubscriber.GROUP_ID) + " " + subsProperties.getProperty(KafkaSubscriber.KEY_DESERIALIZER_CLASS) + " " +
-                    subsProperties.getProperty(KafkaSubscriber.VALUE_DESERIALIZER_CLASS) );
+            System.out.println( subsProperties.getProperty(Connector.HOST_NAME) + " " +
+                    subsProperties.getProperty(Connector.PORT) + " " +  subsProperties.getProperty(MQ.TOPIC_NAME) + " " +
+                    subsProperties.getProperty(Kafka.GROUP_ID) + " " + subsProperties.getProperty(Kafka.KEY_DESERIALIZER_CLASS) + " " +
+                    subsProperties.getProperty(Kafka.VALUE_DESERIALIZER_CLASS) );
 
         }
 
     }
 
-    public static void main (String args[]){
 
-        SubscriberTest test = new SubscriberTest(args);
-        test.launchSubscriber(args);
-    }
-
-    private void launchSubscriber(String args[]){
+    public void launch(){
         Thread[] subscribers = new Thread[subsNumber];
-        Subscriber subscriber;
+        Connector subscriber;
 
         for(int i = 0; i < subsNumber; i++) {
-            subscriber = args[0].equals("MQ") ? new MQSubscriber() : new KafkaSubscriber();
-            subscriber.subscribe(subsProperties);
-            subscribers[i] = new SubscribeThread(subscriber, "Subscriber " + i);
+            subscriber = messageBroker.equals("MQ") ? new MQ() : new Kafka();
+            subscriber.connect(subsProperties);
+            subscriber.subscribeTopic(subsProperties);
+            subscribers[i] = new SubscriberThread(subscriber, "Subscriber " + i, subsProperties);
             subscribers[i].start();
             System.out.println("Subscriber " + i + " Ready");
         }
     }
 
-     class SubscribeThread extends Thread{
-
-        private Subscriber subscriber;
-
-        public SubscribeThread(Subscriber subscriber, String name){
-            super(name);
-            this.subscriber = subscriber;
-        }
-
-        @Override
-        public void run(){
-            try{
-                while( true ){
-                    System.out.println(this.getName() + " -> Message: " + subscriber.receiveMessage());
-                }
-            }catch (Exception e){
-                e.printStackTrace();
-            } finally {
-                try{
-                    subscriber.close();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 }
